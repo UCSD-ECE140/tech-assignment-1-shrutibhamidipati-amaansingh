@@ -52,7 +52,7 @@ def on_message(client, userdata, msg):
         :param client: the client itself
         :param userdata: userdata is set when initiating the client, here it is userdata=None
         :param msg: the message with topic and payload
-    """
+    """        
 
     print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
@@ -97,15 +97,26 @@ if __name__ == '__main__':
                                             'player_name' : player_2}))
     
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                        'team_name':'BTeam',
+                                        'team_name':'CTeam',
                                         'player_name' : player_3}))
 
     time.sleep(1) # Wait a second to resolve game start
     client.publish(f"games/{lobby_name}/start", "START")
-    client.publish(f"games/{lobby_name}/{player_1}/move", "UP")
-    client.publish(f"games/{lobby_name}/{player_2}/move", "DOWN")
-    client.publish(f"games/{lobby_name}/{player_3}/move", "DOWN")
+    
+    client.loop_start()
+
+    time.sleep(3)
+
+    while(True):
+        val = input("Player 1 Enter your move: ") 
+        val2 = input("Player 2 Enter your move: ") 
+        val3 = input("Player 3 Enter your move: ") 
+        client.publish(f"games/{lobby_name}/{player_1}/move", val)
+        client.publish(f"games/{lobby_name}/{player_2}/move", val2)
+        client.publish(f"games/{lobby_name}/{player_3}/move", val3) 
+        time.sleep(3)
+
+
     client.publish(f"games/{lobby_name}/start", "STOP")
 
 
-    client.loop_forever()

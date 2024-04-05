@@ -15,7 +15,7 @@
 #
 import time
 
-
+import random
 import paho.mqtt.client as paho
 from paho import mqtt
 
@@ -89,9 +89,9 @@ client.on_connect = on_connect
 # enable TLS for secure connection
 client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 # set username and password
-client.username_pw_set("{YOUR USERNAME}", "{YOUR PASSWORD}")
+client.username_pw_set("shbhamidipati@ucsd.edu", "Junk1234")
 # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-client.connect("{YOUR URL}", 8883)
+client.connect("aa9522535b1c4cf88d78ed3ff26c42df.s1.eu.hivemq.cloud", 8883)
 
 
 # setting callbacks, use separate functions like above for better visibility
@@ -110,4 +110,8 @@ client.publish("encyclopedia/temperature", payload="hot", qos=1)
 
 # loop_forever for simplicity, here you need to stop the loop manually
 # you can also use loop_start and loop_stop
-client.loop_forever()
+client.loop_start()
+while True:
+    number = random.randrange(start=100)
+    client.publish("encyclopedia/random_number", payload=number, qos=1)
+    time.sleep(3)    

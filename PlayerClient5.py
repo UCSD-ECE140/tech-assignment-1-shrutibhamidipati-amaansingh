@@ -6,6 +6,10 @@ import paho.mqtt.client as paho
 from paho import mqtt
 import time
 
+from InputTypes import NewPlayer
+
+validated = False
+
 
 # setting callbacks for different events to see if it works, print the message etc.
 def on_connect(client, userdata, flags, rc, properties=None):
@@ -52,10 +56,27 @@ def on_message(client, userdata, msg):
         :param client: the client itself
         :param userdata: userdata is set when initiating the client, here it is userdata=None
         :param msg: the message with topic and payload
-    """        
+    """
+    topic_list = msg.topic.split("/")
+
+    # Validate it is input we can deal with
+    if topic_list[-1] in dispatch.keys(): 
+        dispatch[topic_list[-1]](client, topic_list, msg.payload)
+
+
 
     print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
+def validate_player(client, topic_list, msg_payload):
+        player = NewPlayer(**json.loads(msg_payload))
+        if player.player_name == "Player4": 
+            global validated
+            validated = True
+
+
+dispatch = {
+    'new_game' : validate_player
+}
 
 if __name__ == '__main__':
     load_dotenv(dotenv_path='./credentials.env')
@@ -65,7 +86,7 @@ if __name__ == '__main__':
     username = os.environ.get('USER_NAME')
     password = os.environ.get('PASSWORD')
 
-    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player1", userdata=None, protocol=paho.MQTTv5)
+    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player4", userdata=None, protocol=paho.MQTTv5)
     
     # enable TLS for secure connection
     client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
@@ -83,39 +104,39 @@ if __name__ == '__main__':
     player_1 = "Player1"
     player_2 = "Player2"
     player_3 = "Player3"
+    player_4 = "Player4"
 
     client.subscribe(f"games/{lobby_name}/lobby")
     client.subscribe(f'games/{lobby_name}/+/game_state')
     client.subscribe(f'games/{lobby_name}/scores')
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'ATeam',
-                                            'player_name' : player_1}))
-    
-    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
                                             'team_name':'BTeam',
-                                            'player_name' : player_2}))
-    
-    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                        'team_name':'CTeam',
-                                        'player_name' : player_3}))
+                                            'player_name' : player_4}))
 
     time.sleep(1) # Wait a second to resolve game start
+    """
     client.publish(f"games/{lobby_name}/start", "START")
+    client.publish(f"games/{lobby_name}/{player_1}/move", "UP")
+    client.publish(f"games/{lobby_name}/{player_2}/move", "DOWN")
+    client.publish(f"games/{lobby_name}/{player_3}/move", "DOWN")
+    client.publish(f"games/{lobby_name}/start", "STOP")
+
+    """
+
+
+    #client.publish(f"games/{lobby_name}/start", "START")
+    #client.loop_forever()
     
     client.loop_start()
+    #client.publish(f"games/{lobby_name}/start", "START")
 
     time.sleep(3)
 
     while(True):
-        val = input("Player 1 Enter your move: ") 
-        val2 = input("Player 2 Enter your move: ") 
-        val3 = input("Player 3 Enter your move: ") 
-        client.publish(f"games/{lobby_name}/{player_1}/move", val)
-        client.publish(f"games/{lobby_name}/{player_2}/move", val2)
-        client.publish(f"games/{lobby_name}/{player_3}/move", val3)
-        client.publish(f"games/{lobby_name}/start", "STOP") 
+        val = input("Player 4 Enter your move: ") 
+        client.publish(f"games/{lobby_name}/{player_4}/move", val)
+        #client.publish(f"games/{lobby_name}/start", "STOP") 
         time.sleep(3)
-        
-
-
+    
+    #client.loop_forever()

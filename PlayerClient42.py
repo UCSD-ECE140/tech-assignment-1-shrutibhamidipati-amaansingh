@@ -7,9 +7,11 @@ from paho import mqtt
 import time
 
 from InputTypes import NewPlayer
+import random
 
 validated = False
 wait_next_variable = False
+answer = 'UP'
 
 # setting callbacks for different events to see if it works, print the message etc.
 def on_connect(client, userdata, flags, rc, properties=None):
@@ -66,6 +68,9 @@ def on_message(client, userdata, msg):
     if f'games/TestLobby/Player3/game_state' == msg.topic:
         global wait_next_variable
         wait_next_variable = True
+        gamestate = json.loads(msg.payload)
+        global answer
+        answer = getnextcommand(gamestate)
 
     print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
@@ -73,13 +78,46 @@ def validate_player(client, topic_list, msg_payload):
         player = NewPlayer(**json.loads(msg_payload))
         if player.player_name == "Player4": 
             global validated
-            time.sleep(1)
             validated = True
 
 
 dispatch = {
     'new_game' : validate_player
 }
+
+def getnextcommand(game_state):
+        moves = get_moves(game_state)
+        if moves:
+            return random.choice(moves)
+        else:
+            return None
+        
+def get_moves(game_state):
+        current_position = game_state["currentPosition"]
+        valid_moves = []
+        # Check all adjacent positions
+        for move in [[0, 1], [0, -1], [1, 0], [-1, 0]]:
+            new_position = (current_position[0] + move[0], current_position[1] + move[1])
+            print(new_position)
+            if is_valid(new_position, game_state):
+                if move == [0,1]:
+                    valid_moves.append("RIGHT")
+                elif move == [0,-1]:
+                    valid_moves.append("LEFT")
+                elif move == [1,0]:
+                    valid_moves.append("DOWN")
+                elif move == [-1,0]:
+                    valid_moves.append("UP")    
+        return valid_moves
+
+def is_valid(position, game_state):
+        x, y = position
+        if 0 <= x < 10 and 0 <= y < 10:  # Check if within grid boundaries
+            if list(position) not in game_state["walls"]:  # Check if not a wall
+                print("true")
+                print(game_state["walls"])
+                return True
+        return False
 
 if __name__ == '__main__':
     load_dotenv(dotenv_path='./credentials.env')
@@ -137,12 +175,12 @@ if __name__ == '__main__':
 
     while(True):
         if validated == 1:
-            val = input("Player 3 Enter your move: ") 
+            val = answer
             client.publish(f"games/{lobby_name}/{player_3}/move", val)
             wait_next_variable = False
             while(wait_next_variable == False):
                 #print(wait_next_variable)
                 time.sleep(1)
         #client.publish(f"games/{lobby_name}/start", "STOP") 
-        time.sleep(3)
+        time.sleep(1)
     #client.loop_forever()

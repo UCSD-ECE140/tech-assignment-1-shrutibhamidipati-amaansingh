@@ -66,6 +66,7 @@ def on_message(client, userdata, msg):
     if f'games/TestLobby/Player1/game_state' == msg.topic:
         global wait_next_variable
         wait_next_variable = True
+
          
 
     #player = NewPlayer(**json.loads(msg.payload))
@@ -76,7 +77,6 @@ def on_message(client, userdata, msg):
 def validate_player(client, topic_list, msg_payload):
         player = NewPlayer(**json.loads(msg_payload))
         if player.player_name == "Player4": 
-            print("good")
             client.publish(f"games/{lobby_name}/start", "START")
             global validated
             validated = True
@@ -85,6 +85,7 @@ def validate_player(client, topic_list, msg_payload):
 dispatch = {
     'new_game' : validate_player,
 }
+
 
 if __name__ == '__main__':
     load_dotenv(dotenv_path='./credentials.env')

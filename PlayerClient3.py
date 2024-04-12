@@ -76,6 +76,7 @@ def validate_player(client, topic_list, msg_payload):
         player = NewPlayer(**json.loads(msg_payload))
         if player.player_name == "Player4":
             global validated
+            time.sleep(1)
             validated = True
 
 

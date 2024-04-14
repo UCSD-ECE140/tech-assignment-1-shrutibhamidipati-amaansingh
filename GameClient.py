@@ -10,8 +10,6 @@ from dotenv import load_dotenv
 from InputTypes import NewPlayer
 from game import Game
 from moveset import Moveset
-import json 
-
 
 # setting callbacks for different events to see if it works, print the message etc.
 def on_connect(client, userdata, flags, rc, properties=None):
@@ -216,10 +214,4 @@ if __name__ == '__main__':
     client.subscribe('games/+/start')
     client.subscribe('games/+/+/move')
 
-
-    
     client.loop_forever()
-    
-    # new_game = { "lobby_name": "game", "team_name": "stars", "player_name":"player"}
-    # game_Json = json.dumps(new_game)
-    # client.publish("new_game", payload=game_Json, qos=1)
